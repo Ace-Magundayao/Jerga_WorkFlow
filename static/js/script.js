@@ -2,25 +2,73 @@
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    // Automatically dismiss alerts after 5 seconds.
-    const alerts = document.querySelectorAll(".alert");
-    alerts.forEach(function (alert) {
-        setTimeout(function () {
-            const closeButton = alert.querySelector(".btn-close");
-            if (closeButton) {
-                closeButton.click();
-            }
-        }, 5000);
+    // Show flashed backend messages as SweetAlert popups instead of plain bars.
+    document.querySelectorAll(".flash-data").forEach(function (node, index) {
+        const category = node.dataset.category;
+        const message = node.dataset.message;
+        const icon = (category === "success") ? "success"
+            : (category === "danger") ? "error"
+            : (category === "warning") ? "warning"
+            : "info";
+
+        Swal.fire({
+            title: icon === "success" ? "Success!" : icon === "error" ? "Oops..." : "Notice",
+            icon: icon,
+            text: message,
+            draggable: true,
+            grow: "row",
+            showConfirmButton: index === document.querySelectorAll(".flash-data").length - 1,
+            timer: index === document.querySelectorAll(".flash-data").length - 1 ? 3500 : undefined,
+            timerProgressBar: true,
+        });
     });
 
     // Confirm before submitting forms marked for confirmation.
     document.querySelectorAll("form[data-confirm]").forEach(function (form) {
         form.addEventListener("submit", function (event) {
-            if (!confirm(form.getAttribute("data-confirm"))) {
+            if (!form.dataset.confirmed) {
                 event.preventDefault();
+                event.stopImmediatePropagation();
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: form.getAttribute("data-confirm"),
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, continue",
+                    cancelButtonText: "Cancel",
+                    confirmButtonColor: "#1b7a3d",
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        form.dataset.confirmed = "1";
+                        form.submit();
+                    }
+                });
             }
         });
     });
+
+    // Mobile: open / close the sidebar.
+    const toggle = document.getElementById("sidebarToggle");
+    const sidebar = document.getElementById("sidebar");
+    if (toggle && sidebar) {
+        toggle.addEventListener("click", function () {
+            sidebar.classList.toggle("open");
+            let backdrop = document.querySelector(".sidebar-backdrop");
+            if (sidebar.classList.contains("open")) {
+                if (!backdrop) {
+                    backdrop = document.createElement("div");
+                    backdrop.className = "sidebar-backdrop";
+                    backdrop.addEventListener("click", function () {
+                        sidebar.classList.remove("open");
+                        backdrop.remove();
+                    });
+                    document.body.appendChild(backdrop);
+                }
+            } else if (backdrop) {
+                backdrop.remove();
+            }
+        });
+    }
 });
 
 

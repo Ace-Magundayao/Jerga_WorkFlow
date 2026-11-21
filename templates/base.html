@@ -1,143 +1,173 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <!-- Mobile-friendly viewport -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- PWA: green theme + installable app manifest -->
-    <meta name="theme-color" content="#1b7a3d">
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#1b7a3d" />
+    <link
+    rel="manifest"
+    href="{{ url_for('static', filename='manifest.json') }}"
+    />
 
     <title>{% block title %}WORKFLOW Management System{% endblock %}</title>
 
     <!-- Logo in the browser tab -->
-    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/JERGA.jpg') }}">
+    <link
+    rel="icon"
+    type="image/jpeg"
+    href="{{ url_for('static', filename='img/JERGA.jpg') }}"
+    />
 
     <!-- Bootstrap served locally so the site works offline -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}"
+    />
+    <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/style.css') }}"
+    />
 </head>
 
-<body>
-
+<body class="{% if current_user.is_authenticated %}with-sidebar{% endif %}">
     {% if current_user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-        <div class="container">
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('auth.dashboard') }}">
-                <img src="{{ url_for('static', filename='img/JERGA.jpg') }}" alt="WORKFLOW logo" width="30" height="30"
-                    class="me-2">
-                WORKFLOW
-            </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <!-- ===== Sidebar (vertical navigation, moved off the top) ===== -->
+    <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <img
+        src="{{ url_for('static', filename='img/JERGA.jpg') }}"
+        alt="WORKFLOW logo"
+        width="34"
+        height="34"
+        />
+        <span>WORKFLOW</span>
+    </div>
 
-            <div class="collapse navbar-collapse" id="navbarMenu">
-                <ul class="navbar-nav ms-auto align-items-lg-center">
+    <nav class="sidebar-nav">
+        <a
+        href="{{ url_for('auth.dashboard') }}"
+        class="sidebar-link {% if request.endpoint == 'auth.dashboard' %}active{% endif %}"
+        >
+        <span class="sb-icon">🏠</span> Dashboard
+        </a>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">Dashboard</a>
-                    </li>
+        {% if current_user.role in ["admin", "hr"] %}
+        <a
+        href="{{ url_for('employees.list_employees') }}"
+        class="sidebar-link {% if request.endpoint and request.endpoint.startswith('employees') %}active{% endif %}"
+        >
+        <span class="sb-icon">👥</span> Employees
+        </a>
+        {% endif %}
 
-                    {% if current_user.role in ["admin", "hr"] %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('employees.list_employees') }}">Employees</a>
-                    </li>
-                    {% endif %}
+        <a
+        href="{{ url_for('requests.list_requests') }}"
+        class="sidebar-link {% if request.endpoint and request.endpoint.startswith('requests') %}active{% endif %}"
+        >
+        <span class="sb-icon">📋</span> Requests
+        </a>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('requests.list_requests') }}">Requests</a>
-                    </li>
+        <a
+        href="{{ url_for('notifications.list_notifications') }}"
+        class="sidebar-link {% if request.endpoint and request.endpoint.startswith('notifications') %}active{% endif %}"
+        >
+        <span class="sb-icon">🔔</span> Notifications {% if
+        unread_notification_count > 0 %}
+        <span class="badge bg-danger ms-auto"
+            >{{ unread_notification_count }}</span
+        >
+        {% endif %}
+        </a>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('notifications.list_notifications') }}">
-                            Notifications
-                            {% if unread_notification_count > 0 %}
-                            <span class="badge bg-danger">{{ unread_notification_count }}</span>
-                            {% endif %}
-                        </a>
-                    </li>
+        {% if current_user.role == "admin" %}
+        <a
+        href="{{ url_for('biometrics.admin_verifications') }}"
+        class="sidebar-link {% if request.endpoint == 'biometrics.admin_verifications' %}active{% endif %}"
+        >
+        <span class="sb-icon">🛡️</span> ID Verifications
+        </a>
+        {% endif %}
 
-                    {% if current_user.role == "admin" %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('biometrics.admin_verifications') }}">
-                            ID Verifications
-                        </a>
-                    </li>
-                    {% endif %}
+        <div class="sidebar-section">Account</div>
 
-                    <li class="nav-item">
-                        <span class="nav-link">
-                            {{ current_user.username }} ({{ current_user.role|title }})
-                        </span>
-                    </li>
+        <a
+        href="{{ url_for('biometrics.enroll') }}"
+        class="sidebar-link {% if request.endpoint == 'biometrics.enroll' %}active{% endif %}"
+        title="Face ID settings"
+        >
+        <span class="sb-icon">😎</span> Face ID
+        </a>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('biometrics.enroll') }}" title="Face ID settings">
-                            Face ID
-                        </a>
-                    </li>
+        <a
+        href="{{ url_for('biometrics.verify_id') }}"
+        class="sidebar-link {% if request.endpoint == 'biometrics.verify_id' %}active{% endif %}"
+        title="Valid ID verification"
+        >
+        <span class="sb-icon">🪪</span>
+        {% if current_user.id_verified %} ID Verified {% elif
+        current_user.id_document %} ID Pending {% else %} Verify ID {% endif
+        %}
+        </a>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('biometrics.verify_id') }}" title="Valid ID verification">
-                            {% if current_user.id_verified %}
-                            <span class="badge bg-light text-dark">ID Verified</span>
-                            {% elif current_user.id_document %}
-                            <span class="badge bg-warning text-dark">ID Pending</span>
-                            {% else %}
-                            Verify ID
-                            {% endif %}
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('account.change_password') }}" title="Change password">
-                            Change Password
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="btn btn-light btn-sm ms-lg-2" href="{{ url_for('auth.logout') }}">
-                            Logout
-                        </a>
-                    </li>
-
-                </ul>
-            </div>
-        </div>
+        <a
+        href="{{ url_for('account.change_password') }}"
+        class="sidebar-link {% if request.endpoint == 'account.change_password' %}active{% endif %}"
+        title="Change password"
+        >
+        <span class="sb-icon">🔑</span> Change Password
+        </a>
     </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+        <div class="avatar">{{ current_user.username|first|upper }}</div>
+        <div>
+            <div class="fw-semibold">{{ current_user.username }}</div>
+            <small class="text-white-50">{{ current_user.role|title }}</small>
+        </div>
+        </div>
+        <a
+        href="{{ url_for('auth.logout') }}"
+        class="btn btn-light btn-sm w-100 mt-2"
+        >Logout</a
+        >
+    </div>
+    </aside>
+
+    <!-- Mobile top bar with hamburger toggle -->
+    <div class="mobile-topbar d-lg-none">
+    <button class="btn btn-light btn-sm" id="sidebarToggle" type="button">
+        ☰ Menu
+    </button>
+    <span class="fw-bold text-white">WORKFLOW</span>
+    </div>
+
     {% endif %}
 
-    <main class="container py-4">
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-
-        {% block content %}{% endblock %}
-
+    <main class="app-main">
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %} {% for category, message in messages %}
+    <div
+        class="flash-data"
+        data-category="{{ category }}"
+        data-message="{{ message }}"
+    ></div>
+    {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
     </main>
 
-    <footer class="text-center py-3 text-muted">
-        <small>
-            &copy; 2026 JERGA Builders and Construction Supply.
-            WORKFLOW Management System.
-        </small>
+    <footer class="text-center py-3 text-muted app-footer">
+    <small>
+        &copy; 2026 JERGA Builders and Construction Supply. WORKFLOW Management
+        System.
+    </small>
     </footer>
 
-    <!-- Bootstrap served locally so the site works offline -->
+    <!-- Local libraries so the site works offline -->
     <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/sweetalert2.all.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
 </body>
-
 </html>
