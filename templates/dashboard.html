@@ -1,0 +1,200 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header mb-4">
+    <div class="d-flex align-items-center">
+        <img src="{{ url_for('static', filename='img/JERGA.jpg') }}"
+             alt="WORKFLOW logo" width="48" height="48" class="me-3">
+        <div>
+            <h2 class="mb-0">Welcome, {{ user.username }}!</h2>
+            <p class="text-muted mb-0">
+                Welcome to the WORKFLOW Management System.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h5 class="card-title">Account Information</h5>
+                <hr>
+
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+
+                <p>
+                    <strong>Role:</strong>
+                    <span class="badge bg-success">
+                        {{ user.role|title }}
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    <span class="badge bg-success">Active</span>
+                </p>
+
+                <hr>
+
+                <p>
+                    <strong>Face ID:</strong>
+                    {% if current_user.face_encoding %}
+                        <span class="badge bg-success">Enrolled</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Not enrolled</span>
+                    {% endif %}
+                </p>
+
+                <p>
+                    <strong>Valid ID:</strong>
+                    {% if current_user.id_verified %}
+                        <span class="badge bg-success">Verified</span>
+                    {% elif current_user.id_document %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Not submitted</span>
+                    {% endif %}
+                </p>
+
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('account.change_password') }}"
+                       class="btn btn-sm btn-outline-success">
+                        Change Password
+                    </a>
+
+                    <a href="{{ url_for('biometrics.enroll') }}"
+                       class="btn btn-sm btn-outline-success">
+                        Face ID Settings
+                    </a>
+
+                    <a href="{{ url_for('biometrics.verify_id') }}"
+                       class="btn btn-sm btn-outline-success">
+                        Verify Valid ID
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if user.role in ["admin", "hr"] %}
+
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h5 class="card-title">Employee Management</h5>
+                <hr>
+
+                <p class="text-muted">
+                    Manage employee records and information.
+                </p>
+
+                <a href="{{ url_for('employees.list_employees') }}"
+                   class="btn btn-success">
+                    Manage Employees
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h5 class="card-title">Request Management</h5>
+                <hr>
+
+                <p class="text-muted">
+                    Submit and monitor employee requests.
+                </p>
+
+                <a href="{{ url_for('requests.list_requests') }}"
+                   class="btn btn-success">
+                    View Requests
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h5 class="card-title">Notifications</h5>
+                <hr>
+
+                <p class="text-muted">
+                    Check updates on your submitted requests.
+                </p>
+
+                <a href="{{ url_for('notifications.list_notifications') }}"
+                   class="btn btn-outline-success">
+                    View Notifications
+                    {% if unread_notification_count > 0 %}
+                        <span class="badge bg-danger">
+                            {{ unread_notification_count }}
+                        </span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if user.role == "admin" %}
+
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h5 class="card-title">Password Reset Assistance</h5>
+                <hr>
+
+                <p class="text-muted">
+                    Issue a 6-digit reset code for a user who forgot their password.
+                </p>
+
+                <form method="POST" action="{{ url_for('auth.admin_issue_reset_code') }}" class="d-flex gap-2">
+                    <input
+                        type="text"
+                        name="username"
+                        class="form-control"
+                        placeholder="Username"
+                        required
+                    >
+                    <button type="submit" class="btn btn-success text-nowrap">
+                        Issue Code
+                    </button>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h5>System Information</h5>
+
+        <p><strong>System:</strong> WORKFLOW</p>
+
+        <p>
+            <strong>Organization:</strong>
+            JERGA Builders and Construction Supply
+        </p>
+
+        <p class="mb-0">
+            <strong>Current Module:</strong>
+            Employee Management and Requests
+        </p>
+    </div>
+</div>
+
+{% endblock %}

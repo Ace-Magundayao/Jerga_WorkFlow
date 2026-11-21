@@ -1,0 +1,222 @@
+
+{% extends "base.html" %}
+
+{% block title %}Request Details | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold">Request Details</h2>
+            <p class="text-muted mb-0">
+                Reference: {{ employee_request.reference_number }}
+            </p>
+        </div>
+
+        <a href="{{ url_for('requests.list_requests') }}"
+           class="btn btn-secondary">
+            Back to Requests
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-light py-3">
+            <h5 class="mb-0">Request Information</h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            <div class="row mb-3">
+
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Employee</label>
+                    <h6>{{ employee_request.employee.full_name }}</h6>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Employee Number</label>
+                    <h6>{{ employee_request.employee.employee_number }}</h6>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Request Type</label>
+                    <h6>{{ employee_request.request_type }}</h6>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Subject</label>
+                    <h6>{{ employee_request.subject }}</h6>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Start Date</label>
+                    <h6>
+                        {{ employee_request.start_date.strftime('%B %d, %Y') if employee_request.start_date else 'N/A' }}
+                    </h6>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">End Date</label>
+                    <h6>
+                        {{ employee_request.end_date.strftime('%B %d, %Y') if employee_request.end_date else 'N/A' }}
+                    </h6>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Amount</label>
+                    <h6>
+                        {{ '₱{:,.2f}'.format(employee_request.amount) if employee_request.amount is not none else 'N/A' }}
+                    </h6>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Date Submitted</label>
+                    <h6>
+                        {{ employee_request.submitted_at.strftime('%B %d, %Y %I:%M %p') if employee_request.submitted_at else 'N/A' }}
+                    </h6>
+                </div>
+
+            </div>
+
+            <hr>
+
+            <div class="mb-4">
+                <label class="text-muted">Description</label>
+                <p class="mt-2">{{ employee_request.description }}</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="text-muted">Status</label>
+
+                <div>
+                    {% if employee_request.status == "Pending" %}
+                        <span class="badge bg-warning text-dark fs-6">Pending</span>
+                    {% elif employee_request.status == "Approved" %}
+                        <span class="badge bg-success fs-6">Approved</span>
+                    {% elif employee_request.status == "Rejected" %}
+                        <span class="badge bg-danger fs-6">Rejected</span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6">
+                            {{ employee_request.status }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if employee_request.remarks %}
+                <div class="mb-4">
+                    <label class="text-muted">Review Remarks</label>
+                    <p>{{ employee_request.remarks }}</p>
+                </div>
+            {% endif %}
+
+            {% if employee_request.reviewed_by %}
+                <div class="mb-3">
+                    <label class="text-muted">Reviewed By</label>
+                    <p>{{ employee_request.reviewed_by.username }}</p>
+                </div>
+            {% endif %}
+
+            {% if employee_request.reviewed_at %}
+                <div class="mb-4">
+                    <label class="text-muted">Date Reviewed</label>
+                    <p>
+                        {{ employee_request.reviewed_at.strftime('%B %d, %Y %I:%M %p') }}
+                    </p>
+                </div>
+            {% endif %}
+
+            <hr>
+
+            {% if employee_request.status == "Pending" %}
+
+                {% if current_user.role in ["admin", "hr"] and employee_request.submitted_by_id != current_user.id %}
+
+                    <h5 class="mb-3">Review Request</h5>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <form method="POST"
+                                  action="{{ url_for('requests.approve_request', request_id=employee_request.id) }}">
+
+                                <input type="hidden"
+                                       name="csrf_token"
+                                       value="{{ csrf_token() }}">
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        Approval Remarks (Optional)
+                                    </label>
+
+                                    <textarea name="remarks"
+                                              class="form-control"
+                                              rows="3"
+                                              placeholder="Enter approval remarks..."></textarea>
+                                </div>
+
+                                <button type="submit"
+                                        class="btn btn-success w-100"
+                                        onclick="return confirm('Are you sure you want to approve this request?');">
+                                    Approve Request
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <form method="POST"
+                                  action="{{ url_for('requests.reject_request', request_id=employee_request.id) }}">
+
+                                <input type="hidden"
+                                       name="csrf_token"
+                                       value="{{ csrf_token() }}">
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        Rejection Reason
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <textarea name="remarks"
+                                              class="form-control"
+                                              rows="3"
+                                              placeholder="Explain why this request is rejected..."
+                                              required></textarea>
+                                </div>
+
+                                <button type="submit"
+                                        class="btn btn-danger w-100"
+                                        onclick="return confirm('Are you sure you want to reject this request?');">
+                                    Reject Request
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                {% elif employee_request.submitted_by_id == current_user.id %}
+
+                    <a href="{{ url_for('requests.edit_request', request_id=employee_request.id) }}"
+                       class="btn btn-success">
+                        Edit Request
+                    </a>
+
+                {% endif %}
+
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

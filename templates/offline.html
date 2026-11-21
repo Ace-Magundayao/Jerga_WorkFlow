@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Offline | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="text-center py-5">
+    <h1 class="display-1 fw-bold text-success">No Connection</h1>
+    <p class="lead text-muted">
+        You are offline right now. The page you asked for is not cached.
+    </p>
+    <p class="text-muted">
+        Pages you have visited before may still be available —
+        try going back or reopening the app.
+    </p>
+    <a href="/" class="btn btn-success mt-2">Try Again</a>
+</div>
+
+{% endblock %}

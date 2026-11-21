@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Face ID Sign In | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='img/JERGA.jpg') }}"
+                 alt="WORKFLOW logo" width="64" height="64" class="mb-2">
+            <h2 class="fw-bold text-success">WORKFLOW</h2>
+            <h4>Sign In with Face ID</h4>
+            <p class="text-muted">
+                Look at the camera to sign in
+            </p>
+        </div>
+
+        <form method="POST" id="faceLoginForm">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <input type="hidden" name="image" id="imageData">
+
+            <div class="text-center mb-3">
+                <video id="video" autoplay playsinline class="rounded border"
+                    style="width: 100%; max-width: 360px; transform: scaleX(-1);"></video>
+
+                <canvas id="canvas" class="d-none"></canvas>
+            </div>
+
+            <button type="button" id="startBtn" class="btn btn-outline-success w-100 mb-2">
+                Start Camera
+            </button>
+
+            <button type="button" id="scanBtn" class="btn btn-success w-100 mb-2" disabled>
+                Scan My Face
+            </button>
+
+        </form>
+
+        <hr>
+
+        <div class="text-center">
+            <a href="{{ url_for('auth.login') }}">
+                Sign in with password instead
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const startBtn = document.getElementById("startBtn");
+    const scanBtn = document.getElementById("scanBtn");
+    const faceLoginForm = document.getElementById("faceLoginForm");
+    const imageData = document.getElementById("imageData");
+
+    let stream = null;
+
+    startBtn.addEventListener("click", async function () {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: 640, height: 480 }
+            });
+            video.srcObject = stream;
+            scanBtn.disabled = false;
+            startBtn.disabled = true;
+        } catch (error) {
+            alert("Unable to access the camera. Please allow camera access.");
+        }
+    });
+
+    scanBtn.addEventListener("click", function () {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        imageData.value = canvas.toDataURL("image/jpeg", 0.9);
+
+        scanBtn.disabled = true;
+        scanBtn.textContent = "Scanning...";
+
+        faceLoginForm.submit();
+    });
+</script>
+
+{% endblock %}

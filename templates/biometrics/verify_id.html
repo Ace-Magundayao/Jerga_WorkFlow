@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Valid ID Verification | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+
+        <div class="mb-4">
+            <h2 class="fw-bold">Valid ID Verification</h2>
+            <p class="text-muted">
+                Upload a government-issued ID for account verification.
+            </p>
+        </div>
+
+        {% if current_user.id_document %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h5 class="mb-0">Submitted ID</h5>
+
+                    {% if current_user.id_verified %}
+                    <span class="badge bg-success fs-6">Verified</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark fs-6">
+                        Pending Verification
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <p>
+                    <strong>ID Type:</strong>
+                    {{ current_user.id_document_type }}
+                </p>
+
+                <img src="{{ url_for('biometrics.id_image', user_id=current_user.id) }}" alt="Uploaded ID"
+                    class="img-fluid rounded border mb-3" style="max-height: 300px;">
+
+                {% if not current_user.id_verified %}
+                <div class="alert alert-info mb-3">
+                    Your ID is awaiting administrator verification.
+                </div>
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Replace with a new ID image
+                        </label>
+                        <input type="file" name="id_document" class="form-control" accept=".png,.jpg,.jpeg,.webp" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        Upload New ID
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+        {% else %}
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+
+                <form method="POST" enctype="multipart/form-data">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            ID Type
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <select name="id_type" class="form-select" required>
+
+                            <option value="">Select ID type</option>
+
+                            {% for id_type in id_types %}
+                            <option value="{{ id_type }}">
+                                {{ id_type }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            ID Image
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input type="file" name="id_document" class="form-control" accept=".png,.jpg,.jpeg,.webp"
+                            required>
+
+                        <div class="form-text">
+                            PNG, JPG, JPEG, or WEBP. Make sure the whole
+                            ID is visible and readable.
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <small>
+                            Your ID will only be visible to administrators
+                            for verification purposes and is stored securely
+                            within the system.
+                        </small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            Submit ID
+                        </button>
+
+                        <a href="{{ url_for('auth.dashboard') }}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

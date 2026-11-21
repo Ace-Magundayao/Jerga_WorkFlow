@@ -1,0 +1,279 @@
+
+{% extends "base.html" %}
+
+{% block title %}Employee Profile | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+
+    <div>
+        <h2 class="fw-bold">Employee Profile</h2>
+        <p class="text-muted mb-0">
+            Complete employee information.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+
+        <a href="{{ url_for('employees.edit_employee', employee_id=employee.id) }}"
+           class="btn btn-warning">
+            Edit Employee
+        </a>
+
+        {% if employee.status == "Inactive" %}
+            <form method="POST"
+                  action="{{ url_for('employees.reactivate_employee', employee_id=employee.id) }}"
+                  onsubmit="return confirm('Are you sure you want to reactivate this employee?');">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-person-check"></i>
+                    Reactivate Employee
+                </button>
+
+            </form>
+        {% endif %}
+
+        <a href="{{ url_for('employees.list_employees') }}"
+           class="btn btn-secondary">
+            Back
+        </a>
+
+    </div>
+
+</div>
+
+<!-- EMPLOYEE INFORMATION -->
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-body p-4">
+
+        <h4 class="text-success mb-4">
+            {{ employee.full_name }}
+        </h4>
+
+        <div class="row g-4">
+
+            <div class="col-md-6">
+                <strong>Employee Number</strong>
+                <p>{{ employee.employee_number }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Status</strong>
+                <p>
+                    {% if employee.status == "Active" %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>First Name</strong>
+                <p>{{ employee.first_name }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Middle Name</strong>
+                <p>{{ employee.middle_name or "N/A" }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Last Name</strong>
+                <p>{{ employee.last_name }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Gender</strong>
+                <p>{{ employee.gender or "N/A" }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Birth Date</strong>
+                <p>
+                    {{ employee.birth_date.strftime("%B %d, %Y") if employee.birth_date else "N/A" }}
+                </p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Email</strong>
+                <p>{{ employee.email or "N/A" }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Contact Number</strong>
+                <p>{{ employee.contact_number or "N/A" }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Department</strong>
+                <p>{{ employee.department or "N/A" }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Position</strong>
+                <p>{{ employee.position or "N/A" }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Employment Type</strong>
+                <p>{{ employee.employment_type or "N/A" }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <strong>Date Hired</strong>
+                <p>
+                    {{ employee.date_hired.strftime("%B %d, %Y") if employee.date_hired else "N/A" }}
+                </p>
+            </div>
+
+            <div class="col-12">
+                <strong>Address</strong>
+                <p>{{ employee.address or "N/A" }}</p>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- EMPLOYEE LOGIN ACCOUNT -->
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-header bg-light py-3">
+        <h5 class="mb-0">
+            <i class="bi bi-person-lock"></i>
+            Employee Login Account
+        </h5>
+    </div>
+
+    <div class="card-body p-4">
+
+        {% if employee.user %}
+
+            <div class="alert alert-success">
+                <strong>Account Linked Successfully</strong>
+                <p class="mb-0 mt-2">
+                    This employee already has a login account.
+                </p>
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <strong>Username</strong>
+                    <p>{{ employee.user.username }}</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Account Email</strong>
+                    <p>{{ employee.user.email }}</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Account Status</strong>
+                    <p>
+                        {% if employee.user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-warning">
+                This employee does not have a linked login account yet.
+            </div>
+
+            {% if employee.status == "Active" %}
+
+                {% if available_accounts %}
+
+                    <form method="POST"
+                          action="{{ url_for('employees.link_employee_account', employee_id=employee.id) }}">
+
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Select Employee Account
+                            </label>
+
+                            <select name="user_id"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+                                    Select an account
+                                </option>
+
+                                {% for account in available_accounts %}
+
+                                    <option value="{{ account.id }}">
+                                        {{ account.username }} - {{ account.email }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                            <div class="form-text">
+                                Only active, unlinked employee accounts are displayed.
+                            </div>
+
+                        </div>
+
+                        <div class="alert alert-info">
+                            Make sure the selected account belongs to
+                            <strong>{{ employee.full_name }}</strong>
+                            before linking it.
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-success"
+                                onclick="return confirm('Are you sure you want to link this account to this employee?');">
+
+                            <i class="bi bi-link-45deg"></i>
+                            Link Account
+
+                        </button>
+
+                    </form>
+
+                {% else %}
+
+                    <p class="text-muted mb-0">
+                        No available employee accounts found.
+                        Create an employee login account first.
+                    </p>
+
+                {% endif %}
+
+            {% else %}
+
+                <p class="text-danger mb-0">
+                    Inactive employees cannot be linked to login accounts.
+                    Reactivate this employee first.
+                </p>
+
+            {% endif %}
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

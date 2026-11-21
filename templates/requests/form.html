@@ -1,0 +1,149 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+
+            <div class="mb-4">
+                <h2 class="fw-bold">{{ page_title }}</h2>
+                <p class="text-muted">
+                    Complete the information below.
+                </p>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+
+                    <form method="POST">
+
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="{{ csrf_token() }}">
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Request Type
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <select name="request_type"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">Select request type</option>
+
+                                {% for type in request_types %}
+                                    <option value="{{ type }}"
+                                        {% if employee_request and employee_request.request_type == type %}
+                                            selected
+                                        {% endif %}>
+                                        {{ type }}
+                                    </option>
+                                {% endfor %}
+
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Subject
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input type="text"
+                                   name="subject"
+                                   class="form-control"
+                                   maxlength="200"
+                                   value="{{ employee_request.subject if employee_request else request.form.get('subject', '') }}"
+                                   placeholder="Enter request subject"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Description
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <textarea name="description"
+                                      class="form-control"
+                                      rows="5"
+                                      placeholder="Explain the reason for your request..."
+                                      required>{{ employee_request.description if employee_request else request.form.get('description', '') }}</textarea>
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    Start Date
+                                </label>
+
+                                <input type="date"
+                                       name="start_date"
+                                       class="form-control"
+                                       required
+                                       value="{{ employee_request.start_date.strftime('%Y-%m-%d') if employee_request and employee_request.start_date else request.form.get('start_date', '') }}">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    End Date
+                                </label>
+
+                                <input type="date"
+                                       name="end_date"
+                                       class="form-control"
+                                       required
+                                       value="{{ employee_request.end_date.strftime('%Y-%m-%d') if employee_request and employee_request.end_date else request.form.get('end_date', '') }}">
+                            </div>
+
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Amount (if applicable)
+                            </label>
+
+                            <input type="number"
+                                   name="amount"
+                                   class="form-control"
+                                   min="0"
+                                   step="0.01"
+                                   value="{{ employee_request.amount if employee_request and employee_request.amount is not none else request.form.get('amount', '') }}"
+                                   placeholder="0.00">
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+
+                            <a href="{{ url_for('requests.list_requests') }}"
+                               class="btn btn-secondary">
+                                Cancel
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-success">
+                                {{ 'Update Request' if employee_request else 'Submit Request' }}
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

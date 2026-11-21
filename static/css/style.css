@@ -1,0 +1,153 @@
+/* ==========================================
+   WORKFLOW - Green theme
+   ========================================== */
+
+/* Brand green palette */
+:root {
+    --green-dark: #145c2c;
+    --green-main: #1b7a3d;
+    --green-light: #e6f4ea;
+    --green-focus: rgba(27, 122, 61, 0.2);
+}
+
+body {
+    background-color: #f2f8f4;
+    /* subtle green-tinted background */
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--green-main) !important;
+}
+
+.navbar-brand {
+    letter-spacing: 1px;
+}
+
+/* Buttons: force the brand green on success buttons */
+.btn-success {
+    --bs-btn-bg: var(--green-main);
+    --bs-btn-border-color: var(--green-main);
+    --bs-btn-hover-bg: var(--green-dark);
+    --bs-btn-hover-border-color: var(--green-dark);
+    --bs-btn-active-bg: var(--green-dark);
+    --bs-btn-active-border-color: var(--green-dark);
+    padding: 10px;
+    border-radius: 7px;
+}
+
+.btn-outline-success {
+    --bs-btn-color: var(--green-main);
+    --bs-btn-border-color: var(--green-main);
+    --bs-btn-hover-bg: var(--green-main);
+    --bs-btn-hover-border-color: var(--green-main);
+    --bs-btn-active-bg: var(--green-main);
+    --bs-btn-active-border-color: var(--green-main);
+}
+
+/* Links */
+a {
+    color: var(--green-main);
+}
+
+a:hover {
+    color: var(--green-dark);
+}
+
+/* Forms */
+.form-control {
+    padding: 11px;
+    border-radius: 7px;
+}
+
+.form-control:focus {
+    border-color: var(--green-main);
+    box-shadow: 0 0 0 0.2rem var(--green-focus);
+}
+
+/* Invalid fields: red border + red glow (error message is added by JS) */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+    padding-right: 0.75rem; /* no room reserved for the browser error icon */
+    background-image: none;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0.2rem rgba(220, 53, 69, 0.2);
+}
+
+/* Red message shown under an invalid field */
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* When the field and its message are inside a flex row, force a line break */
+.invalid-feedback {
+    display: block;
+}
+
+/* Login / register pages */
+.auth-container {
+    min-height: 75vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 15px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 450px;
+    background: #ffffff;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card h2 {
+    letter-spacing: 2px;
+    color: var(--green-main);
+}
+
+/* Dashboard */
+.dashboard-header {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    border-left: 5px solid var(--green-main);
+}
+
+.dashboard-card {
+    height: 100%;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-card .card-title {
+    color: var(--green-main);
+    font-weight: bold;
+}
+
+.card {
+    border-radius: 10px;
+    border: none;
+}
+
+footer {
+    font-size: 13px;
+}
+
+/* Small phones: tighten the login card */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 25px 20px;
+    }
+}

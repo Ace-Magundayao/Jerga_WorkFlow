@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Face ID Enrollment | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="mb-4">
+            <h2 class="fw-bold">Face ID Enrollment</h2>
+            <p class="text-muted">
+                Enroll your face for quick sign-in.
+            </p>
+        </div>
+
+        {% if current_user.face_encoding %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4 text-center">
+
+                <span class="badge bg-success fs-6 mb-3">
+                    Face ID Enrolled
+                </span>
+
+                <p>
+                    Enrolled on
+                    {{ current_user.face_enrolled_at.strftime('%B %d, %Y') if current_user.face_enrolled_at }}
+                </p>
+
+                <img src="{{ url_for('biometrics.face_image', filename=current_user.face_photo) }}"
+                    alt="Enrollment photo" class="rounded border"
+                    style="width: 180px; height: 180px; object-fit: cover;">
+
+                <div class="mt-4">
+                    <form method="POST" action="{{ url_for('biometrics.unenroll') }}"
+                        data-confirm="Remove your Face ID enrollment? You will need to enroll again to use Face ID.">
+
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <button type="submit" class="btn btn-outline-danger">
+                            Remove Face ID
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        {% endif %}
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0">
+                    {{ 'Re-enroll Your Face' if current_user.face_encoding else 'Enroll Your Face' }}
+                </h5>
+            </div>
+
+            <div class="card-body p-4">
+
+                <div class="alert alert-info">
+                    <strong>Tips for a good capture:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Make sure your face is well-lit.</li>
+                        <li>Look directly at the camera.</li>
+                        <li>Remove glasses or masks if possible.</li>
+                    </ul>
+                </div>
+
+                <form method="POST" id="enrollForm">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <input type="hidden" name="image" id="imageData">
+
+                    <div class="text-center mb-3">
+                        <video id="video" autoplay playsinline class="rounded border"
+                            style="width: 100%; max-width: 480px; transform: scaleX(-1);"></video>
+
+                        <canvas id="canvas" class="d-none"></canvas>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2">
+
+                        <button type="button" id="startBtn" class="btn btn-outline-success">
+                            Start Camera
+                        </button>
+
+                        <button type="button" id="captureBtn" class="btn btn-success" disabled>
+                            Capture Face
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const startBtn = document.getElementById("startBtn");
+    const captureBtn = document.getElementById("captureBtn");
+    const enrollForm = document.getElementById("enrollForm");
+    const imageData = document.getElementById("imageData");
+
+    let stream = null;
+
+    startBtn.addEventListener("click", async function () {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: 640, height: 480 }
+            });
+            video.srcObject = stream;
+            captureBtn.disabled = false;
+            startBtn.disabled = true;
+        } catch (error) {
+            alert("Unable to access the camera. Please allow camera access.");
+        }
+    });
+
+    captureBtn.addEventListener("click", function () {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        imageData.value = canvas.toDataURL("image/jpeg", 0.9);
+        enrollForm.submit();
+    });
+</script>
+
+{% endblock %}

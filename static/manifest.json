@@ -1,0 +1,17 @@
+{
+  "name": "WORKFLOW Management System",
+  "short_name": "WORKFLOW",
+  "description": "JERGA Employee Request and Approval Management System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f8f4",
+  "theme_color": "#1b7a3d",
+  "icons": [
+    {
+      "src": "/static/img/JERGA.jpg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications | WORKFLOW{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+
+    <div>
+        <h2 class="fw-bold">Notifications</h2>
+        <p class="text-muted mb-0">
+            {{ unread_count }} unread notification{{ 's' if unread_count != 1 }}.
+        </p>
+    </div>
+
+    {% if unread_count > 0 %}
+    <form method="POST" action="{{ url_for('notifications.mark_all_read') }}">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <button type="submit" class="btn btn-outline-success">
+            Mark All as Read
+        </button>
+
+    </form>
+    {% endif %}
+
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+
+        {% if notifications %}
+
+        {% for notification in notifications %}
+
+        <div class="d-flex justify-content-between align-items-start
+                            {% if not loop.last %}border-bottom pb-3 mb-3{% endif %}">
+
+            <div {% if notification.is_read %}class="text-muted" {% endif %}>
+
+                <strong>
+                    {% if not notification.is_read %}
+                    <span class="badge bg-success me-1">New</span>
+                    {% endif %}
+                    {{ notification.title }}
+                </strong>
+
+                <p class="mb-1">{{ notification.message }}</p>
+
+                <small class="text-muted">
+                    {{ notification.created_at.strftime('%B %d, %Y %I:%M %p') if notification.created_at }}
+                    &middot; {{ notification.notification_type }}
+                </small>
+
+            </div>
+
+            {% if not notification.is_read %}
+            <form method="POST" action="{{ url_for('notifications.mark_read', notification_id=notification.id) }}">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                    Mark Read
+                </button>
+
+            </form>
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+        {% else %}
+
+        <div class="text-center py-5">
+            <h5>No Notifications</h5>
+            <p class="text-muted mb-0">
+                You have no notifications yet.
+            </p>
+        </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}
