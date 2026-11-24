@@ -4,140 +4,126 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="container-fluid py-3">
 
-    <div>
-        <h2 class="fw-bold">Valid ID Verifications</h2>
-        <p class="text-muted mb-0">
-            Review and verify submitted identification documents.
-        </p>
-    </div>
-
-    <a href="{{ url_for('auth.dashboard') }}" class="btn btn-secondary">
-        Back to Dashboard
-    </a>
-
-</div>
-
-<div class="card shadow-sm mb-4">
-
-    <div class="card-header bg-light py-3">
-        <h5 class="mb-0">Pending Verification ({{ pending|length }})</h5>
-    </div>
-
-    <div class="card-body p-4">
-
-        {% if pending %}
-
-        {% for user in pending %}
-
-        <div class="d-flex justify-content-between align-items-center
-                            {% if not loop.last %}border-bottom pb-3 mb-3{% endif %}">
-
-            <div class="d-flex align-items-center gap-3">
-
-                <img src="{{ url_for('biometrics.id_image', user_id=user.id) }}" alt="ID" class="rounded border"
-                    style="width: 110px; height: 70px; object-fit: cover;">
-
-                <div>
-                    <strong>{{ user.username }}</strong>
-                    <br>
-                    <small class="text-muted">
-                        {{ user.id_document_type }} &middot;
-                        {{ user.email }}
-                    </small>
-                </div>
-
-            </div>
-
-            <div class="d-flex gap-2">
-
-                <a href="{{ url_for('biometrics.id_image', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary"
-                    target="_blank">
-                    View Full Size
-                </a>
-
-                <form method="POST" action="{{ url_for('biometrics.admin_verify', user_id=user.id) }}"
-                    data-confirm="Verify the ID for {{ user.username }}?">
-
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                    <button type="submit" class="btn btn-sm btn-success">
-                        Verify ID
-                    </button>
-
-                </form>
-
-            </div>
-
-        </div>
-
-        {% endfor %}
-
-        {% else %}
-
-        <p class="text-muted mb-0 text-center py-3">
-            No IDs are awaiting verification.
-        </p>
-
-        {% endif %}
-
-    </div>
-</div>
-
-<div class="card shadow-sm">
-
-    <div class="card-header bg-light py-3">
-        <h5 class="mb-0">Verified ({{ verified|length }})</h5>
-    </div>
-
-    <div class="card-body p-4">
-
-        {% if verified %}
-
-        {% for user in verified %}
-
-        <div class="d-flex justify-content-between align-items-center
-                            {% if not loop.last %}border-bottom pb-3 mb-3{% endif %}">
-
+    <!-- Page header -->
+    <div class="admin-page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
-                <strong>{{ user.username }}</strong>
-                <br>
-                <small class="text-muted">
-                    {{ user.id_document_type }}
-                </small>
+                <h2 class="admin-page-title mb-1">
+                    <i class="bi bi-person-badge-fill me-2"></i>Valid ID Verifications
+                </h2>
+                <p class="text-muted mb-0">
+                    Review and verify submitted identification documents.
+                </p>
             </div>
+            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-success">
+                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
 
-            <div class="d-flex align-items-center gap-2">
+    <div class="row g-4">
 
-                <span class="badge bg-success">Verified</span>
+        <!-- Pending column -->
+        <div class="col-lg-6">
+            <div class="card panel-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="panel-title mb-0">Pending Verification</h5>
+                        <span class="badge status-badge status-pending">{{ pending|length }}</span>
+                    </div>
 
-                <form method="POST" action="{{ url_for('biometrics.admin_unverify', user_id=user.id) }}"
-                    data-confirm="Remove verification for {{ user.username }}?">
-
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                    <button type="submit" class="btn btn-sm btn-outline-warning">
-                        Remove
-                    </button>
-
-                </form>
-
+                    {% if pending %}
+                    <div class="verification-list">
+                        {% for user in pending %}
+                        <div class="verification-item {% if not loop.last %}bordered{% endif %}">
+                            <img src="{{ url_for('biometrics.id_image', user_id=user.id) }}"
+                                alt="ID document" class="verification-thumb">
+                            <div class="verification-info">
+                                <div class="fw-semibold">{{ user.username }}</div>
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-credit-card me-1"></i>{{ user.id_document_type }}
+                                </small>
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-envelope me-1"></i>{{ user.email }}
+                                </small>
+                            </div>
+                            <div class="verification-actions">
+                                <a href="{{ url_for('biometrics.id_image', user_id=user.id) }}"
+                                class="btn btn-sm btn-outline-success" target="_blank">
+                                    <i class="bi bi-zoom-in"></i>
+                                </a>
+                                <form method="POST"
+                                    action="{{ url_for('biometrics.admin_verify', user_id=user.id) }}"
+                                    data-confirm="Verify the ID for {{ user.username }}?">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check2 me-1"></i>Verify
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                        <p class="text-muted mb-0">No IDs are awaiting verification.</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-
         </div>
 
-        {% endfor %}
+        <!-- Verified column -->
+        <div class="col-lg-6">
+            <div class="card panel-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="panel-title mb-0">Verified</h5>
+                        <span class="badge status-badge status-approved">{{ verified|length }}</span>
+                    </div>
 
-        {% else %}
-
-        <p class="text-muted mb-0 text-center py-3">
-            No verified IDs yet.
-        </p>
-
-        {% endif %}
+                    {% if verified %}
+                    <div class="verification-list">
+                        {% for user in verified %}
+                        <div class="verification-item {% if not loop.last %}bordered{% endif %}">
+                            <div class="avatar avatar-sm verification-avatar">
+                                {{ user.username|first|upper }}
+                            </div>
+                            <div class="verification-info">
+                                <div class="fw-semibold">{{ user.username }}</div>
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-credit-card me-1"></i>{{ user.id_document_type or "N/A" }}
+                                </small>
+                            </div>
+                            <div class="verification-actions">
+                                <span class="badge status-badge status-approved">Verified</span>
+                                <form method="POST"
+                                      action="{{ url_for('biometrics.admin_unverify', user_id=user.id) }}"
+                                      data-confirm="Remove verification for {{ user.username }}?">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-circle me-1"></i>Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-patch-check fs-1 text-muted d-block mb-2"></i>
+                        <p class="text-muted mb-0">No verified IDs yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
     </div>
+
 </div>
 
 {% endblock %}

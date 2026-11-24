@@ -105,7 +105,64 @@ def logout():
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", user=current_user)
+    """Dashboard with live statistics, chart data, recent requests, and
+    notifications — all pulled from the existing database."""
+    from sqlalchemy import func
+    from models.request import EmployeeRequest
+    from models.notification import Notification
+
+    # Scope: employees see their own requests; admin/HR see everything.
+    base_query = EmployeeRequest.query
+    if current_user.role not in ("admin", "hr"):
+        base_query = base_query.filter_by(submitted_by_id=current_user.id)
+
+    # --- Summary cards -------------------------------------------------
+    stats = {
+        "total": base_query.count(),
+        "pending": base_query.filter_by(status="Pending").count(),
+        "approved": base_query.filter_by(status="Approved").count(),
+        "rejected": base_query.filter_by(status="Rejected").count(),
+    }
+
+    # --- Chart: requests submitted per month ----------------------------
+    month = func.strftime("%Y-%m", EmployeeRequest.submitted_at)
+    rows = base_query.with_entities(month, func.count(EmployeeRequest.id))\
+        .group_by(month).order_by(month).all()
+    monthly_map = {m: count for m, count in rows}
+
+    def month_label(d):
+        return d.strftime("%b")  # Jan, Feb, ...
+
+    today = datetime.now()
+    chart_labels, chart_data = [], []
+    for offset in range(11, -1, -1):  # last 12 months, oldest first
+        d = today
+        for _ in range(offset):
+            d = (d.replace(day=1) - timedelta(days=1)).replace(day=1)
+        key = d.strftime("%Y-%m")
+        chart_labels.append(month_label(d))
+        chart_data.append(monthly_map.get(key, 0))
+
+    chart_6_labels, chart_6_data = chart_labels[6:], chart_data[6:]
+
+    # --- Recent requests (latest first, max 6) ---------------------------
+    recent_requests = base_query.order_by(EmployeeRequest.submitted_at.desc()).limit(6).all()
+
+    # --- Recent notifications (max 5) ------------------------------------
+    recent_notifications = Notification.query.filter_by(user_id=current_user.id)\
+        .order_by(Notification.created_at.desc()).limit(5).all()
+
+    return render_template(
+        "dashboard.html",
+        user=current_user,
+        stats=stats,
+        chart_labels=chart_labels,
+        chart_data=chart_data,
+        chart_6_labels=chart_6_labels,
+        chart_6_data=chart_6_data,
+        recent_requests=recent_requests,
+        recent_notifications=recent_notifications,
+    )
 
 
 # ==========================================

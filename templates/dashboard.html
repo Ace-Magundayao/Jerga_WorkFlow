@@ -1,200 +1,498 @@
-
-{% extends "base.html" %}
-
-{% block title %}Dashboard | WORKFLOW{% endblock %}
-
-{% block content %}
-
-<div class="dashboard-header mb-4">
-    <div class="d-flex align-items-center">
-        <img src="{{ url_for('static', filename='img/JERGA.jpg') }}"
-             alt="WORKFLOW logo" width="48" height="48" class="me-3">
-        <div>
-            <h2 class="mb-0">Welcome, {{ user.username }}!</h2>
-            <p class="text-muted mb-0">
-                Welcome to the WORKFLOW Management System.
-            </p>
-        </div>
+{% extends "base.html" %} {% block title %}Dashboard | WORKFLOW{% endblock %} {%
+block content %}
+<div class="container-fluid px-3 px-lg-4 py-4">
+  <!-- ===== Welcome banner ===== -->
+  <section class="welcome-banner mb-4">
+    <div class="welcome-overlay"></div>
+    <div class="welcome-content d-flex align-items-center gap-3 flex-wrap">
+      <img
+        src="{{ url_for('static', filename='img/JERGA.jpg') }}"
+        alt="JERGA logo"
+        class="welcome-logo"
+        width="64"
+        height="64"
+      />
+      <div class="flex-grow-1">
+        <h1 class="welcome-title mb-1">Welcome, {{ user.username }}!</h1>
+        <p class="welcome-subtitle mb-0">
+          Here's what's happening with your requests.
+        </p>
+      </div>
+      <div class="welcome-role">
+        <span class="badge role-badge">{{ user.role|title }}</span>
+      </div>
     </div>
-</div>
+  </section>
 
-<div class="row g-4">
-
-    <div class="col-md-4">
-        <div class="card dashboard-card">
-            <div class="card-body">
-                <h5 class="card-title">Account Information</h5>
-                <hr>
-
-                <p><strong>Username:</strong> {{ user.username }}</p>
-                <p><strong>Email:</strong> {{ user.email }}</p>
-
-                <p>
-                    <strong>Role:</strong>
-                    <span class="badge bg-success">
-                        {{ user.role|title }}
-                    </span>
-                </p>
-
-                <p>
-                    <strong>Status:</strong>
-                    <span class="badge bg-success">Active</span>
-                </p>
-
-                <hr>
-
-                <p>
-                    <strong>Face ID:</strong>
-                    {% if current_user.face_encoding %}
-                        <span class="badge bg-success">Enrolled</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Not enrolled</span>
-                    {% endif %}
-                </p>
-
-                <p>
-                    <strong>Valid ID:</strong>
-                    {% if current_user.id_verified %}
-                        <span class="badge bg-success">Verified</span>
-                    {% elif current_user.id_document %}
-                        <span class="badge bg-warning text-dark">Pending</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Not submitted</span>
-                    {% endif %}
-                </p>
-
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('account.change_password') }}"
-                       class="btn btn-sm btn-outline-success">
-                        Change Password
-                    </a>
-
-                    <a href="{{ url_for('biometrics.enroll') }}"
-                       class="btn btn-sm btn-outline-success">
-                        Face ID Settings
-                    </a>
-
-                    <a href="{{ url_for('biometrics.verify_id') }}"
-                       class="btn btn-sm btn-outline-success">
-                        Verify Valid ID
-                    </a>
-                </div>
+  <div class="row g-4">
+    <!-- ===== Main column ===== -->
+    <div class="col-lg-8">
+      <!-- Summary stat cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-3">
+          <div class="card stat-card">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon stat-icon-total">
+                <i class="bi bi-clipboard-data"></i>
+              </div>
+              <div>
+                <div class="stat-value">{{ stats.total }}</div>
+                <div class="stat-label">My Requests</div>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-
-    {% if user.role in ["admin", "hr"] %}
-
-    <div class="col-md-4">
-        <div class="card dashboard-card">
-            <div class="card-body">
-                <h5 class="card-title">Employee Management</h5>
-                <hr>
-
-                <p class="text-muted">
-                    Manage employee records and information.
-                </p>
-
-                <a href="{{ url_for('employees.list_employees') }}"
-                   class="btn btn-success">
-                    Manage Employees
-                </a>
+        <div class="col-6 col-xl-3">
+          <div class="card stat-card">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon stat-icon-pending">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div>
+                <div class="stat-value">{{ stats.pending }}</div>
+                <div class="stat-label">Pending</div>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-
-    {% endif %}
-
-    <div class="col-md-4">
-        <div class="card dashboard-card">
-            <div class="card-body">
-                <h5 class="card-title">Request Management</h5>
-                <hr>
-
-                <p class="text-muted">
-                    Submit and monitor employee requests.
-                </p>
-
-                <a href="{{ url_for('requests.list_requests') }}"
-                   class="btn btn-success">
-                    View Requests
-                </a>
+        <div class="col-6 col-xl-3">
+          <div class="card stat-card">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon stat-icon-approved">
+                <i class="bi bi-check2-circle"></i>
+              </div>
+              <div>
+                <div class="stat-value">{{ stats.approved }}</div>
+                <div class="stat-label">Approved</div>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card dashboard-card">
-            <div class="card-body">
-                <h5 class="card-title">Notifications</h5>
-                <hr>
-
-                <p class="text-muted">
-                    Check updates on your submitted requests.
-                </p>
-
-                <a href="{{ url_for('notifications.list_notifications') }}"
-                   class="btn btn-outline-success">
-                    View Notifications
-                    {% if unread_notification_count > 0 %}
-                        <span class="badge bg-danger">
-                            {{ unread_notification_count }}
-                        </span>
-                    {% endif %}
-                </a>
+        <div class="col-6 col-xl-3">
+          <div class="card stat-card">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon stat-icon-rejected">
+                <i class="bi bi-x-circle"></i>
+              </div>
+              <div>
+                <div class="stat-value">{{ stats.rejected }}</div>
+                <div class="stat-label">Rejected</div>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
+      </div>
 
-    {% if user.role == "admin" %}
+      <!-- Request overview chart -->
+      <div class="card panel-card mb-4">
+        <div class="card-body">
+          <div
+            class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"
+          >
+            <h5 class="panel-title mb-0">Request Overview</h5>
+            <div
+              class="btn-group btn-group-sm"
+              role="group"
+              aria-label="Chart range"
+            >
+              <button
+                type="button"
+                class="btn btn-range"
+                id="range6"
+                data-range="6"
+              >
+                Last 6 Months
+              </button>
+              <button
+                type="button"
+                class="btn btn-range active"
+                id="range12"
+                data-range="12"
+              >
+                Last 12 Months
+              </button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="requestChart"></canvas>
+          </div>
+        </div>
+      </div>
 
-    <div class="col-md-4">
-        <div class="card dashboard-card">
-            <div class="card-body">
-                <h5 class="card-title">Password Reset Assistance</h5>
-                <hr>
+      <!-- Recent requests table -->
+      <div class="card panel-card mb-4">
+        <div class="card-body">
+          <div
+            class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"
+          >
+            <h5 class="panel-title mb-0">Recent Requests</h5>
+            <a
+              href="{{ url_for('requests.list_requests') }}"
+              class="view-all-link"
+            >
+              View All <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
 
-                <p class="text-muted">
-                    Issue a 6-digit reset code for a user who forgot their password.
-                </p>
-
-                <form method="POST" action="{{ url_for('auth.admin_issue_reset_code') }}" class="d-flex gap-2">
-                    <input
-                        type="text"
-                        name="username"
-                        class="form-control"
-                        placeholder="Username"
-                        required
+          {% if recent_requests %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle recent-table">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Category</th>
+                  <th>Date Submitted</th>
+                  <th>Status</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in recent_requests %}
+                <tr>
+                  <td class="fw-semibold">{{ item.reference_number }}</td>
+                  <td>{{ item.request_type }}</td>
+                  <td>
+                    {{ item.submitted_at.strftime('%b %d, %Y') if
+                    item.submitted_at else 'N/A' }}
+                  </td>
+                  <td>
+                    {% if item.status == "Pending" %}
+                    <span class="badge status-badge status-pending"
+                      >Pending</span
                     >
-                    <button type="submit" class="btn btn-success text-nowrap">
-                        Issue Code
-                    </button>
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                </form>
-            </div>
+                    {% elif item.status == "Approved" %}
+                    <span class="badge status-badge status-approved"
+                      >Approved</span
+                    >
+                    {% elif item.status == "Rejected" %}
+                    <span class="badge status-badge status-rejected"
+                      >Rejected</span
+                    >
+                    {% else %}
+                    <span class="badge status-badge status-pending"
+                      >{{ item.status }}</span
+                    >
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <a
+                      href="{{ url_for('requests.view_request', request_id=item.id) }}"
+                      class="btn btn-sm btn-outline-success"
+                    >
+                      View Details
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+            <p class="text-muted mb-0">No requests submitted yet.</p>
+          </div>
+          {% endif %}
         </div>
+      </div>
+
+      <!-- Account information -->
+      <div class="card panel-card mb-4">
+        <div class="card-body">
+          <h5 class="panel-title mb-3">Account Information</h5>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="account-row">
+                <div class="account-item">
+                  <i class="bi bi-person"></i>
+                  <div>
+                    <small>Username</small><span>{{ user.username }}</span>
+                  </div>
+                </div>
+                <div class="account-item">
+                  <i class="bi bi-envelope"></i>
+                  <div><small>Email</small><span>{{ user.email }}</span></div>
+                </div>
+                <div class="account-item">
+                  <i class="bi bi-shield-check"></i>
+                  <div>
+                    <small>Role</small
+                    ><span
+                      ><span class="badge role-badge"
+                        >{{ user.role|title }}</span
+                      ></span
+                    >
+                  </div>
+                </div>
+                <div class="account-item">
+                  <i class="bi bi-toggle-on"></i>
+                  <div>
+                    <small>Account Status</small
+                    ><span
+                      ><span class="badge status-badge status-approved"
+                        >Active</span
+                      ></span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="account-row">
+                <div class="account-item">
+                  <i class="bi bi-person-bounding-box"></i>
+                  <div>
+                    <small>Face ID</small
+                    ><span>
+                      {% if current_user.face_encoding %}
+                      <span class="badge status-badge status-approved"
+                        >Enrolled</span
+                      >
+                      {% else %}
+                      <span class="badge status-badge status-muted"
+                        >Not enrolled</span
+                      >
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+                <div class="account-item">
+                  <i class="bi bi-person-vcard"></i>
+                  <div>
+                    <small>Valid ID</small
+                    ><span>
+                      {% if current_user.id_verified %}
+                      <span class="badge status-badge status-approved"
+                        >Verified</span
+                      >
+                      {% elif current_user.id_document %}
+                      <span class="badge status-badge status-pending"
+                        >Pending</span
+                      >
+                      {% else %}
+                      <span class="badge status-badge status-muted"
+                        >Not submitted</span
+                      >
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+                <div class="account-item">
+                  <i class="bi bi-briefcase"></i>
+                  <div>
+                    <small>Employee Profile</small
+                    ><span>
+                      {% if current_user.employee %}
+                      <span class="badge status-badge status-approved"
+                        >Linked</span
+                      >
+                      {% else %}
+                      <span class="badge status-badge status-muted"
+                        >Not linked</span
+                      >
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <a
+              href="{{ url_for('account.change_password') }}"
+              class="btn btn-outline-success"
+            >
+              <i class="bi bi-key me-1"></i> Change Password
+            </a>
+            <a
+              href="{{ url_for('biometrics.enroll') }}"
+              class="btn btn-outline-success"
+            >
+              <i class="bi bi-person-bounding-box me-1"></i> Face ID Settings
+            </a>
+            <a
+              href="{{ url_for('biometrics.verify_id') }}"
+              class="btn btn-outline-success"
+            >
+              <i class="bi bi-person-vcard me-1"></i> Verify Valid ID
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {% if user.role == "admin" %}
+      <!-- Password reset assistance (admin only, unchanged) -->
+      <div class="card panel-card mb-4">
+        <div class="card-body">
+          <h5 class="panel-title mb-3">Password Reset Assistance</h5>
+          <p class="text-muted small mb-3">
+            Issue a 6-digit reset code for a user who forgot their password.
+          </p>
+          <form
+            method="POST"
+            action="{{ url_for('auth.admin_issue_reset_code') }}"
+            class="d-flex flex-wrap gap-2"
+          >
+            <input
+              type="text"
+              name="username"
+              class="form-control"
+              placeholder="Username"
+              required
+            />
+            <button type="submit" class="btn btn-success text-nowrap">
+              <i class="bi bi-shield-lock me-1"></i> Issue Code
+            </button>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          </form>
+        </div>
+      </div>
+      {% endif %} {% if user.role in ["admin", "hr"] %}
+      <!-- Employee management (admin/HR only, unchanged) -->
+      <div class="card panel-card mb-4">
+        <div
+          class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3"
+        >
+          <div>
+            <h5 class="panel-title mb-1">Employee Management</h5>
+            <p class="text-muted small mb-0">
+              Manage employee records and information.
+            </p>
+          </div>
+          <a
+            href="{{ url_for('employees.list_employees') }}"
+            class="btn btn-success"
+          >
+            <i class="bi bi-people me-1"></i> Manage Employees
+          </a>
+        </div>
+      </div>
+      {% endif %}
     </div>
 
-    {% endif %}
+    <!-- ===== Right rail ===== -->
+    <div class="col-lg-4">
+      <!-- Quick actions -->
+      <div class="card panel-card mb-4">
+        <div class="card-body">
+          <h5 class="panel-title mb-3">Quick Actions</h5>
 
-</div>
+          <a
+            href="{{ url_for('requests.create_request') }}"
+            class="quick-action primary"
+          >
+            <span class="qa-icon"><i class="bi bi-plus-circle"></i></span>
+            <span class="qa-text">
+              <strong>Submit a Request</strong>
+              <small>Leave, overtime, cash advance…</small>
+            </span>
+          </a>
 
-<div class="card mt-4">
-    <div class="card-body">
-        <h5>System Information</h5>
+          <a
+            href="{{ url_for('requests.list_requests') }}"
+            class="quick-action secondary"
+          >
+            <span class="qa-icon"><i class="bi bi-search"></i></span>
+            <span class="qa-text">
+              <strong>Track My Request</strong>
+              <small>See status of your submissions</small>
+            </span>
+          </a>
 
-        <p><strong>System:</strong> WORKFLOW</p>
+          <a
+            href="{{ url_for('notifications.list_notifications') }}"
+            class="quick-action secondary"
+          >
+            <span class="qa-icon">
+              <i class="bi bi-bell"></i>
+              {% if unread_notification_count > 0 %}
+              <span class="qa-badge">{{ unread_notification_count }}</span>
+              {% endif %}
+            </span>
+            <span class="qa-text">
+              <strong>View Notifications</strong>
+              <small>Updates on your requests</small>
+            </span>
+          </a>
+        </div>
+      </div>
 
-        <p>
-            <strong>Organization:</strong>
-            JERGA Builders and Construction Supply
-        </p>
+      <!-- Notifications panel -->
+      <div class="card panel-card mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="panel-title mb-0">Notifications</h5>
+            <a
+              href="{{ url_for('notifications.list_notifications') }}"
+              class="view-all-link"
+            >
+              View All <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
 
-        <p class="mb-0">
-            <strong>Current Module:</strong>
-            Employee Management and Requests
-        </p>
+          {% if recent_notifications %}
+          <ul class="notif-list list-unstyled mb-0">
+            {% for notification in recent_notifications %}
+            <li
+              class="notif-item {% if not notification.is_read %}unread{% endif %}"
+            >
+              <span
+                class="notif-dot {% if not notification.is_read %}active{% endif %}"
+              ></span>
+              <div class="notif-body">
+                <div class="notif-title">{{ notification.title }}</div>
+                <div class="notif-message">{{ notification.message }}</div>
+                <div class="notif-meta">
+                  <i class="bi bi-clock me-1"></i>
+                  {{ notification.created_at.strftime('%b %d, %Y %I:%M %p') if
+                  notification.created_at else 'N/A' }}
+                </div>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-bell-slash fs-1 text-muted d-block mb-2"></i>
+            <p class="text-muted mb-0">No notifications yet.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- System information (kept from the previous design) -->
+      <div class="card panel-card mb-4">
+        <div class="card-body">
+          <h5 class="panel-title mb-3">System Information</h5>
+          <div class="account-item">
+            <i class="bi bi-hdd-rack"></i>
+            <div><small>System</small><span>WORKFLOW</span></div>
+          </div>
+          <div class="account-item">
+            <i class="bi bi-building"></i>
+            <div>
+              <small>Organization</small
+              ><span>JERGA Builders and Construction Supply</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
+
+<script>
+  // Data injected from the backend (real records).
+  const CHART = {
+    labels12: {{ chart_labels | tojson }},
+    data12: {{ chart_data | tojson }},
+    labels6: {{ chart_6_labels | tojson }},
+    data6: {{ chart_6_data | tojson }},
+  };
+</script>
+<script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
 {% endblock %}

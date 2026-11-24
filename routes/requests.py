@@ -121,8 +121,19 @@ def list_requests():
     if current_user.role not in ("admin", "hr"):
         query = query.filter_by(submitted_by_id=current_user.id)
 
+    # Top-nav search bar: filter by reference number, type, subject, or status.
+    search = request.args.get("q", "").strip()
+    if search:
+        like = f"%{search}%"
+        query = query.filter(
+            (EmployeeRequest.reference_number.ilike(like))
+            | (EmployeeRequest.request_type.ilike(like))
+            | (EmployeeRequest.subject.ilike(like))
+            | (EmployeeRequest.status.ilike(like))
+        )
+
     requests_list = query.order_by(EmployeeRequest.submitted_at.desc()).all()
-    return render_template("requests/list.html", requests=requests_list)
+    return render_template("requests/list.html", requests=requests_list, search=search)
 
 
 @request_bp.route("/create", methods=["GET", "POST"])

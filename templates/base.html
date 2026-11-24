@@ -5,7 +5,7 @@
     <!-- Mobile-friendly viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- PWA: green theme + installable app manifest -->
-    <meta name="theme-color" content="#1b7a3d" />
+    <meta name="theme-color" content="#145c2c" />
     <link
     rel="manifest"
     href="{{ url_for('static', filename='manifest.json') }}"
@@ -27,6 +27,10 @@
     />
     <link
     rel="stylesheet"
+    href="{{ url_for('static', filename='vendor/bootstrap-icons.min.css') }}"
+    />
+    <link
+    rel="stylesheet"
     href="{{ url_for('static', filename='css/style.css') }}"
     />
 </head>
@@ -34,24 +38,30 @@
 <body class="{% if current_user.is_authenticated %}with-sidebar{% endif %}">
     {% if current_user.is_authenticated %}
 
-    <!-- ===== Sidebar (vertical navigation, moved off the top) ===== -->
+    <!-- ===== Sidebar (dark green vertical navigation) ===== -->
     <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <img
         src="{{ url_for('static', filename='img/JERGA.jpg') }}"
-        alt="WORKFLOW logo"
-        width="34"
-        height="34"
+        alt="JERGA WORKFLOW logo"
+        class="sidebar-logo"
+        width="40"
+        height="40"
         />
-        <span>WORKFLOW</span>
+        <div class="sidebar-brand-text">
+        <span class="brand-name">WORKFLOW</span>
+        <small>JERGA Builders</small>
+        </div>
     </div>
 
     <nav class="sidebar-nav">
+        <div class="sidebar-section">Main</div>
+
         <a
         href="{{ url_for('auth.dashboard') }}"
         class="sidebar-link {% if request.endpoint == 'auth.dashboard' %}active{% endif %}"
         >
-        <span class="sb-icon">🏠</span> Dashboard
+        <i class="bi bi-grid-fill sb-icon"></i> Dashboard
         </a>
 
         {% if current_user.role in ["admin", "hr"] %}
@@ -59,7 +69,7 @@
         href="{{ url_for('employees.list_employees') }}"
         class="sidebar-link {% if request.endpoint and request.endpoint.startswith('employees') %}active{% endif %}"
         >
-        <span class="sb-icon">👥</span> Employees
+        <i class="bi bi-people-fill sb-icon"></i> Employees
         </a>
         {% endif %}
 
@@ -67,107 +77,206 @@
         href="{{ url_for('requests.list_requests') }}"
         class="sidebar-link {% if request.endpoint and request.endpoint.startswith('requests') %}active{% endif %}"
         >
-        <span class="sb-icon">📋</span> Requests
+        <i class="bi bi-clipboard-data-fill sb-icon"></i> Requests {% if
+        unread_notification_count > 0 %} {% endif %}
         </a>
 
         <a
-        href="{{ url_for('notifications.list_notifications') }}"
-        class="sidebar-link {% if request.endpoint and request.endpoint.startswith('notifications') %}active{% endif %}"
+          href="{{ url_for('notifications.list_notifications') }}"
+          class="sidebar-link {% if request.endpoint and request.endpoint.startswith('notifications') %}active{% endif %}"
         >
-        <span class="sb-icon">🔔</span> Notifications {% if
-        unread_notification_count > 0 %}
-        <span class="badge bg-danger ms-auto"
+          <i class="bi bi-bell-fill sb-icon"></i> Notifications {% if
+          unread_notification_count > 0 %}
+          <span class="sidebar-badge ms-auto"
             >{{ unread_notification_count }}</span
-        >
-        {% endif %}
+          >
+          {% endif %}
         </a>
 
         {% if current_user.role == "admin" %}
         <a
-        href="{{ url_for('biometrics.admin_verifications') }}"
-        class="sidebar-link {% if request.endpoint == 'biometrics.admin_verifications' %}active{% endif %}"
+          href="{{ url_for('biometrics.admin_verifications') }}"
+          class="sidebar-link {% if request.endpoint == 'biometrics.admin_verifications' %}active{% endif %}"
         >
-        <span class="sb-icon">🆔</span> ID Verifications
+          <i class="bi bi-person-badge-fill sb-icon"></i> ID Verifications
         </a>
         {% endif %}
 
         <div class="sidebar-section">Account</div>
 
         <a
-        href="{{ url_for('biometrics.enroll') }}"
-        class="sidebar-link {% if request.endpoint == 'biometrics.enroll' %}active{% endif %}"
-        title="Face ID settings"
+          href="{{ url_for('biometrics.enroll') }}"
+          class="sidebar-link {% if request.endpoint == 'biometrics.enroll' %}active{% endif %}"
+          title="Face ID settings"
         >
-        <span class="sb-icon">😎</span> Face ID
+          <i class="bi bi-person-bounding-box sb-icon"></i> Face ID
         </a>
 
         <a
-        href="{{ url_for('biometrics.verify_id') }}"
-        class="sidebar-link {% if request.endpoint == 'biometrics.verify_id' %}active{% endif %}"
-        title="Valid ID verification"
+          href="{{ url_for('biometrics.verify_id') }}"
+          class="sidebar-link {% if request.endpoint == 'biometrics.verify_id' %}active{% endif %}"
+          title="Valid ID verification"
         >
-        <span class="sb-icon">🪪</span>
-        {% if current_user.id_verified %} ID Verified {% elif
-        current_user.id_document %} ID Pending {% else %} Verify ID {% endif
-        %}
+          <i class="bi bi-person-vcard sb-icon"></i>
+          {% if current_user.id_verified %} ID Verified {% elif
+          current_user.id_document %} ID Pending {% else %} Verify ID {% endif
+          %}
         </a>
 
         <a
-        href="{{ url_for('account.change_password') }}"
-        class="sidebar-link {% if request.endpoint == 'account.change_password' %}active{% endif %}"
-        title="Change password"
+          href="{{ url_for('account.change_password') }}"
+          class="sidebar-link {% if request.endpoint == 'account.change_password' %}active{% endif %}"
+          title="Change password"
         >
-        <span class="sb-icon">🔑</span> Change Password
+          <i class="bi bi-key-fill sb-icon"></i> Change Password
         </a>
-    </nav>
+      </nav>
 
-    <div class="sidebar-footer">
+      <div class="sidebar-footer">
         <div class="sidebar-user">
-        <div class="avatar">{{ current_user.username|first|upper }}</div>
-        <div>
+          <div class="avatar">{{ current_user.username|first|upper }}</div>
+          <div class="sidebar-user-info">
             <div class="fw-semibold">{{ current_user.username }}</div>
             <small class="text-white-50">{{ current_user.role|title }}</small>
-        </div>
+          </div>
         </div>
         <a
-        href="{{ url_for('auth.logout') }}"
-        class="btn btn-light btn-sm w-100 mt-2"
-        >Logout</a
+          href="{{ url_for('auth.logout') }}"
+          class="sidebar-logout w-100 mt-3"
+          type="button"
         >
-    </div>
+          <i class="bi bi-box-arrow-right me-2"></i>Logout
+        </a>
+      </div>
     </aside>
 
-    <!-- Mobile top bar with hamburger toggle -->
-    <div class="mobile-topbar d-lg-none">
-    <button class="btn btn-light btn-sm" id="sidebarToggle" type="button">
-        ☰ Menu
-    </button>
-    <span class="fw-bold text-white">WORKFLOW</span>
-    </div>
+    <!-- ===== Top navigation bar (search, bell, profile) ===== -->
+    <header class="topbar">
+      <button
+        class="btn topbar-menu-btn d-lg-none"
+        id="sidebarToggle"
+        type="button"
+      >
+        <i class="bi bi-list"></i>
+      </button>
 
+      <form
+        class="topbar-search"
+        method="GET"
+        action="{{ url_for('requests.list_requests') }}"
+        role="search"
+      >
+        <i class="bi bi-search"></i>
+        <input
+          type="search"
+          name="q"
+          value="{{ request.args.get('q', '') }}"
+          placeholder="Search requests (ref no., type, status)..."
+          aria-label="Search requests"
+        />
+      </form>
+
+      <div class="topbar-actions">
+        <a
+          href="{{ url_for('notifications.list_notifications') }}"
+          class="topbar-bell"
+          title="Notifications"
+        >
+          <i class="bi bi-bell"></i>
+          {% if unread_notification_count > 0 %}
+          <span class="topbar-bell-badge">{{ unread_notification_count }}</span>
+          {% endif %}
+        </a>
+
+        <div class="dropdown">
+          <button
+            class="topbar-profile"
+            type="button"
+            data-bs-toggle="dropdown"
+            data-bs-display="static"
+            aria-expanded="false"
+          >
+            <span class="avatar avatar-sm"
+              >{{ current_user.username|first|upper }}</span
+            >
+            <span class="topbar-name d-none d-sm-inline"
+              >{{ current_user.username }}</span
+            >
+            <i class="bi bi-chevron-down d-none d-sm-inline"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end topbar-dropdown">
+            <li class="px-3 py-2">
+              <div class="fw-semibold">{{ current_user.username }}</div>
+              <small class="text-muted">{{ current_user.email }}</small>
+              <div>
+                <span class="badge role-badge"
+                  >{{ current_user.role|title }}</span
+                >
+              </div>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a
+                class="dropdown-item"
+                href="{{ url_for('account.change_password') }}"
+              >
+                <i class="bi bi-key me-2"></i>Change Password
+              </a>
+            </li>
+            <li>
+              <a
+                class="dropdown-item"
+                href="{{ url_for('biometrics.enroll') }}"
+              >
+                <i class="bi bi-person-bounding-box me-2"></i>Face ID Settings
+              </a>
+            </li>
+            <li>
+              <a
+                class="dropdown-item"
+                href="{{ url_for('biometrics.verify_id') }}"
+              >
+                <i class="bi bi-person-vcard me-2"></i>Verify Valid ID
+              </a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a
+                class="dropdown-item text-danger"
+                href="{{ url_for('auth.logout') }}"
+              >
+                <i class="bi bi-box-arrow-right me-2"></i>Logout
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile backdrop for the sidebar -->
     {% endif %}
 
     <main class="app-main">
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %} {% for category, message in messages %}
-    <div
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
         class="flash-data"
         data-category="{{ category }}"
         data-message="{{ message }}"
-    ></div>
-    {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+      ></div>
+      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
     </main>
 
     <footer class="text-center py-3 text-muted app-footer">
-    <small>
+      <small>
         &copy; 2026 JERGA Builders and Construction Supply. WORKFLOW Management
         System.
-    </small>
+      </small>
     </footer>
 
     <!-- Local libraries so the site works offline -->
     <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/sweetalert2.all.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-</body>
+  </body>
 </html>
