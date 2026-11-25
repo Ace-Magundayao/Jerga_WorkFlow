@@ -106,10 +106,10 @@ def validate_request_form():
     }
 
 
-def notify_user(user_id, title, message):
-    """Create and commit an in-app notification for a user."""
+def notify_user(user_id, title, message, notification_type="Request"):
+    """Create an in-app notification for a user (caller commits)."""
     db.session.add(Notification(
-        user_id=user_id, title=title, message=message, notification_type="Request", is_read=False
+        user_id=user_id, title=title, message=message, notification_type=notification_type, is_read=False
     ))
 
 

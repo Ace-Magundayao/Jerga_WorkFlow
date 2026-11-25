@@ -15,6 +15,7 @@ from flask_login import login_user, login_required, current_user
 
 from extensions import db
 from models.user import User
+from models.notification import Notification
 
 biometrics_bp = Blueprint("biometrics", __name__, url_prefix="/biometrics")
 
@@ -371,6 +372,17 @@ def admin_verify(user_id):
     try:
         user.id_verified = True
         user.id_verified_by_id = current_user.id
+
+        # Tell the user their ID was verified (same style as request
+        # notifications — plain text, no URLs).
+        db.session.add(Notification(
+            user_id=user.id,
+            title="Valid ID Verified",
+            message=f"Your valid ID ({user.id_document_type}) has been verified by an administrator.",
+            notification_type="Account",
+            is_read=False,
+        ))
+
         db.session.commit()
         flash(f"ID verified for {user.username}.", "success")
     except Exception:
@@ -395,6 +407,16 @@ def admin_unverify(user_id):
     try:
         user.id_verified = False
         user.id_verified_by_id = None
+
+        # Tell the user their verification was removed.
+        db.session.add(Notification(
+            user_id=user.id,
+            title="Valid ID Verification Removed",
+            message="The verification of your valid ID has been removed. Please contact an administrator if you think this is a mistake.",
+            notification_type="Account",
+            is_read=False,
+        ))
+
         db.session.commit()
         flash(f"Verification removed for {user.username}.", "success")
     except Exception:
