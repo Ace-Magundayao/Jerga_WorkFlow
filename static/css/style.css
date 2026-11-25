@@ -91,6 +91,7 @@ a:hover {
 /* When the field and its message are inside a flex row, force a line break */
 .invalid-feedback {
     display: block;
+    flex-basis: 100%; /* take the full row so it always wraps below the input */
 }
 
 /* Login / register pages */
@@ -487,6 +488,37 @@ body.with-sidebar .app-footer {
     border-radius: 10px;
     margin-bottom: 3px;
     color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap; /* keep link text on one line */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-items: center;
+}
+
+.sidebar-link .sb-icon {
+    flex-shrink: 0;
+}
+
+.sidebar-link span:not(.sidebar-badge),
+.sidebar-link strong {
+    white-space: nowrap;
+}
+
+/* Badge pushed to the right edge of the sidebar */
+.sidebar-link .sidebar-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Sidebar footer text */
+.sidebar-user-info {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.sidebar-user-info .fw-semibold {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-link .sb-icon {
@@ -543,11 +575,24 @@ body.with-sidebar .app-footer {
 /* Push page content below the sticky topbar */
 body.with-sidebar .topbar {
     margin-left: 250px;
+    padding-left: 30px; /* breathing room after the sidebar */
+}
+
+/* Small gap between the sidebar and page content on every page */
+body.with-sidebar .app-main {
+    padding-left: 30px;
+    padding-right: 30px;
 }
 
 @media (max-width: 991.98px) {
     body.with-sidebar .topbar {
         margin-left: 0;
+        padding-left: 14px;
+    }
+
+    body.with-sidebar .app-main {
+        padding-left: 15px;
+        padding-right: 15px;
     }
 }
 
@@ -1063,6 +1108,7 @@ body.with-sidebar .topbar {
     position: relative;
     display: flex;
     align-items: center;
+    flex-wrap: wrap; /* allow the error message to wrap below the input */
 }
 
 .auth-input-group i {

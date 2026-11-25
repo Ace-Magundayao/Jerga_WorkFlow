@@ -13,6 +13,33 @@
 
     <title>{% block title %}WORKFLOW Management System{% endblock %}</title>
 
+    <!-- Social sharing: make shared links show a nice preview card -->
+    <meta property="og:type" content="website" />
+    <meta
+    property="og:site_name"
+    content="JERGA WORKFLOW Management System"
+    />
+    <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}" />
+    <meta
+    property="og:description"
+    content="JERGA Builders — Employee Request and Approval Management System. Submit, track, and approve requests online."
+    />
+    <meta
+    property="og:image"
+    content="{{ (request.url_root.rstrip('/') + url_for('static', filename='img/JERGA.jpg')) }}"
+    />
+    <meta property="og:url" content="{{ request.url_root.rstrip('/') }}" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="{% block tw_title %}{{ self.title() }}{% endblock %}" />
+    <meta
+    name="twitter:description"
+    content="JERGA Builders — Employee Request and Approval Management System."
+    />
+    <meta
+    name="twitter:image"
+    content="{{ (request.url_root.rstrip('/') + url_for('static', filename='img/JERGA.jpg')) }}"
+    />
+
     <!-- Logo in the browser tab -->
     <link
     rel="icon"
@@ -77,8 +104,7 @@
         href="{{ url_for('requests.list_requests') }}"
         class="sidebar-link {% if request.endpoint and request.endpoint.startswith('requests') %}active{% endif %}"
         >
-        <i class="bi bi-clipboard-data-fill sb-icon"></i> Requests {% if
-        unread_notification_count > 0 %} {% endif %}
+        <i class="bi bi-clipboard-data-fill sb-icon"></i> Requests
         </a>
 
         <a

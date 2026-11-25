@@ -112,9 +112,13 @@ def dashboard():
     from models.notification import Notification
 
     # Scope: employees see their own requests; admin/HR see everything.
+    # Requests the employee cancelled or deleted are hidden from Admin/HR.
     base_query = EmployeeRequest.query
     if current_user.role not in ("admin", "hr"):
         base_query = base_query.filter_by(submitted_by_id=current_user.id)
+    else:
+        from routes.requests import EMPLOYEE_REMOVED_STATUSES
+        base_query = base_query.filter(EmployeeRequest.status.notin_(EMPLOYEE_REMOVED_STATUSES))
 
     # --- Summary cards -------------------------------------------------
     stats = {
@@ -152,6 +156,12 @@ def dashboard():
     recent_notifications = Notification.query.filter_by(user_id=current_user.id)\
         .order_by(Notification.created_at.desc()).limit(5).all()
 
+    # --- Admin: users waiting for a password reset code --------------------
+    pending_reset_users = []
+    if current_user.role == "admin":
+        pending_reset_users = User.query.filter(User.reset_code.isnot(None))\
+            .order_by(User.reset_code_expires.desc()).all()
+
     return render_template(
         "dashboard.html",
         user=current_user,
@@ -162,6 +172,7 @@ def dashboard():
         chart_6_data=chart_6_data,
         recent_requests=recent_requests,
         recent_notifications=recent_notifications,
+        pending_reset_users=pending_reset_users,
     )
 
 
@@ -176,6 +187,29 @@ def forgot_password():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         user = User.query.filter_by(username=username).first()
+
+        # Tell every Admin/HR that this user needs a reset code, so they
+        # can issue one from the dashboard.
+        if user:
+            from models.notification import Notification
+
+            message = (
+                f"'{user.username}' requested a password reset code. "
+                "Issue one from the dashboard (Reset Code section)."
+            )
+            admins = User.query.filter(User.role.in_(("admin", "hr"))).all()
+            for admin_user in admins:
+                db.session.add(Notification(
+                    user_id=admin_user.id,
+                    title="Password Reset Request",
+                    message=message,
+                    notification_type="Password Reset",
+                    is_read=False,
+                ))
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
         # Always show the same message so accounts can't be enumerated
         flash(
@@ -224,6 +258,54 @@ def reset_password():
                 flash("Unable to reset the password. Please try again.", "danger")
 
     return render_template("auth/reset_password.html", reset_username=username)
+
+
+@auth_bp.route("/admin/reset-password", methods=["POST"])
+@login_required
+def admin_reset_password():
+    """Admin sets a new password directly for a user who requested a reset."""
+    if current_user.role != "admin":
+        flash("Only administrators can reset user passwords.", "danger")
+        return redirect(url_for("auth.dashboard"))
+
+    username = request.form.get("username", "").strip()
+    new_password = request.form.get("new_password", "")
+    confirm_password = request.form.get("confirm_password", "")
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        flash(f"No account found with the username '{username}'.", "danger")
+    elif len(new_password) < 8:
+        flash("New password must contain at least 8 characters.", "danger")
+    elif new_password != confirm_password:
+        flash("Passwords do not match.", "danger")
+    elif user.id == current_user.id:
+        flash("Use 'Change Password' in the Account menu to change your own password.", "warning")
+    else:
+        try:
+            user.set_password(new_password)
+            # Clear any pending reset code — the password is already fixed.
+            user.reset_code = None
+            user.reset_code_expires = None
+            db.session.commit()
+
+            # Let the user know their password was changed by an admin.
+            from routes.requests import notify_user
+            notify_user(
+                user.id,
+                "Password Reset by Admin",
+                "An administrator has reset your password. "
+                "Please log in with the new password you were given.",
+                notification_type="Password Reset",
+            )
+            db.session.commit()
+
+            flash(f"Password for '{username}' has been reset successfully.", "success")
+        except Exception:
+            db.session.rollback()
+            flash("Unable to reset the password. Please try again.", "danger")
+
+    return redirect(url_for("auth.dashboard"))
 
 
 @auth_bp.route("/admin/issue-reset-code", methods=["POST"])

@@ -39,6 +39,10 @@ def get_request_or_404(request_id):
     return employee_request
 
 
+# Statuses the employee removed themselves — invisible to Admin/HR listings.
+EMPLOYEE_REMOVED_STATUSES = ("Deleted",)
+
+
 def can_access_request(employee_request):
     """Admin/HR can view anything; others only their own requests."""
     if current_user.role in ("admin", "hr"):
@@ -118,7 +122,10 @@ def notify_user(user_id, title, message, notification_type="Request"):
 def list_requests():
     """Admin/HR sees all requests; employees see only their own."""
     query = EmployeeRequest.query
-    if current_user.role not in ("admin", "hr"):
+    if current_user.role in ("admin", "hr"):
+        # Requests the employee cancelled or deleted are hidden from Admin/HR.
+        query = query.filter(EmployeeRequest.status.notin_(EMPLOYEE_REMOVED_STATUSES))
+    else:
         query = query.filter_by(submitted_by_id=current_user.id)
 
     # Top-nav search bar: filter by reference number, type, subject, or status.
@@ -260,6 +267,41 @@ def approve_request(request_id):
     except Exception:
         db.session.rollback()
         flash("Unable to approve the request.", "danger")
+
+    return redirect_to_view(employee_request)
+
+
+# ==========================================
+# EMPLOYEE: DELETE OWN REQUEST
+# ==========================================
+
+def _employee_removed_request(employee_request, new_status, action_text):
+    """Guard rails for delete: only the owner, and only while Pending."""
+    # Only the owner can delete, and only while it is still Pending.
+    if employee_request.submitted_by_id != current_user.id:
+        flash("You can only delete your own request.", "danger")
+        return False
+    if employee_request.status != "Pending":
+        flash("Only pending requests can be deleted.", "warning")
+        return False
+
+    employee_request.status = new_status
+    return True
+
+
+@request_bp.route("/<int:request_id>/delete", methods=["POST"])
+@login_required
+def delete_request(request_id):
+    """Employee deletes their own pending request (kept only for their own history)."""
+    employee_request = get_request_or_404(request_id)
+
+    try:
+        if _employee_removed_request(employee_request, "Deleted", "delete"):
+            db.session.commit()
+            flash("Request deleted. It was removed from Admin/HR view.", "success")
+    except Exception:
+        db.session.rollback()
+        flash("Unable to delete the request. Please try again.", "danger")
 
     return redirect_to_view(employee_request)
 

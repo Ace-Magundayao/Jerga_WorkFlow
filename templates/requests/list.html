@@ -74,6 +74,10 @@
                                     <span class="badge bg-danger">
                                         Rejected
                                     </span>
+                                {% elif item.status == "Deleted" %}
+                                    <span class="badge bg-dark">
+                                        Deleted
+                                    </span>
                                 {% else %}
                                     <span class="badge bg-secondary">
                                         {{ item.status }}
@@ -82,10 +86,23 @@
                             </td>
 
                             <td>
-                                <a href="{{ url_for('requests.view_request', request_id=item.id) }}"
-                                   class="btn btn-sm btn-outline-success">
-                                    View
-                                </a>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ url_for('requests.view_request', request_id=item.id) }}"
+                                       class="btn btn-sm btn-outline-success">
+                                        View
+                                    </a>
+
+                                    {% if item.submitted_by_id == current_user.id and item.status == "Pending" %}
+                                    <form method="POST" data-confirm="Delete this request? It will be removed from Admin/HR view."
+                                          action="{{ url_for('requests.delete_request', request_id=item.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                title="Delete request">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}

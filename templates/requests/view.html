@@ -98,6 +98,8 @@
                         <span class="badge bg-success fs-6">Approved</span>
                     {% elif employee_request.status == "Rejected" %}
                         <span class="badge bg-danger fs-6">Rejected</span>
+                    {% elif employee_request.status == "Deleted" %}
+                        <span class="badge bg-dark fs-6">Deleted</span>
                     {% else %}
                         <span class="badge bg-secondary fs-6">
                             {{ employee_request.status }}
@@ -110,6 +112,13 @@
                 <div class="mb-4">
                     <label class="text-muted">Review Remarks</label>
                     <p>{{ employee_request.remarks }}</p>
+                </div>
+            {% endif %}
+
+            {% if employee_request.cancel_reason %}
+                <div class="mb-4">
+                    <label class="text-muted">Deletion Reason</label>
+                    <p>{{ employee_request.cancel_reason }}</p>
                 </div>
             {% endif %}
 
@@ -205,10 +214,20 @@
 
                 {% elif employee_request.submitted_by_id == current_user.id %}
 
-                    <a href="{{ url_for('requests.edit_request', request_id=employee_request.id) }}"
-                       class="btn btn-success">
-                        Edit Request
-                    </a>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('requests.edit_request', request_id=employee_request.id) }}"
+                           class="btn btn-success">
+                            Edit Request
+                        </a>
+
+                        <form method="POST" data-confirm="Delete this request? It will be removed from Admin/HR view."
+                              action="{{ url_for('requests.delete_request', request_id=employee_request.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i> Delete Request
+                            </button>
+                        </form>
+                    </div>
 
                 {% endif %}
 

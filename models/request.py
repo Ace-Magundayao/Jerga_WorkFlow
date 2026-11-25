@@ -20,7 +20,11 @@ class EmployeeRequest(db.Model):
     amount = db.Column(db.Numeric(12, 2), nullable=True)  # for cash advances / reimbursements
 
     # Review workflow
-    status = db.Column(db.String(20), default="Pending", nullable=False)  # Pending | Approved | Rejected
+    # Pending | Approved | Rejected | Deleted (by the employee)
+    status = db.Column(db.String(20), default="Pending", nullable=False)
+    # Optional note explaining why the employee cancelled it
+    cancel_reason = db.Column(db.Text, nullable=True)
+    cancelled_at = db.Column(db.DateTime, nullable=True)
     remarks = db.Column(db.Text, nullable=True)
     reviewed_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     reviewed_at = db.Column(db.DateTime, nullable=True)
